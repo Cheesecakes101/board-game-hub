@@ -15,6 +15,7 @@ const featuredGames = [
     duration: "60-90 min",
     complexity: 3,
     status: "available",
+    emoji: "🏝️",
   },
   {
     id: "2",
@@ -26,6 +27,7 @@ const featuredGames = [
     duration: "45-60 min",
     complexity: 2,
     status: "available",
+    emoji: "🚂",
   },
   {
     id: "3",
@@ -37,6 +39,7 @@ const featuredGames = [
     duration: "15-30 min",
     complexity: 1,
     status: "booked",
+    emoji: "🕵️",
   },
   {
     id: "4",
@@ -48,21 +51,22 @@ const featuredGames = [
     duration: "120+ min",
     complexity: 4,
     status: "available",
+    emoji: "🚀",
   },
 ];
 
 const categoryColors: Record<string, string> = {
-  beginner: "bg-success/10 text-success border-success/20",
-  intermediate: "bg-info/10 text-info border-info/20",
-  casual: "bg-accent/10 text-accent border-accent/20",
-  complex: "bg-primary/10 text-primary border-primary/20",
+  beginner: "bg-success/20 text-success border-success/30",
+  intermediate: "bg-info/20 text-info border-info/30",
+  casual: "bg-warning/20 text-warning border-warning/30",
+  complex: "bg-primary/20 text-primary border-primary/30",
 };
 
-const statusConfig: Record<string, { label: string; class: string }> = {
-  available: { label: "Available", class: "status-available" },
-  booked: { label: "Booked", class: "status-booked" },
-  partial: { label: "Partial", class: "status-partial" },
-  unavailable: { label: "Unavailable", class: "status-unavailable" },
+const statusConfig: Record<string, { label: string; class: string; emoji: string }> = {
+  available: { label: "Available", class: "status-available", emoji: "✅" },
+  booked: { label: "Booked", class: "status-booked", emoji: "🔒" },
+  partial: { label: "Partial", class: "status-partial", emoji: "⚠️" },
+  unavailable: { label: "Unavailable", class: "status-unavailable", emoji: "❌" },
 };
 
 export function FeaturedGames() {
@@ -71,17 +75,18 @@ export function FeaturedGames() {
       <div className="container">
         <div className="flex items-end justify-between mb-12">
           <div>
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Popular Games
+            <span className="text-4xl mb-2 block">🔥</span>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-pink-500 to-warning bg-clip-text text-transparent">
+              Hot Games
             </h2>
-            <p className="text-muted-foreground text-lg">
-              Fan favorites from our collection
+            <p className="text-muted-foreground text-xl">
+              Fan favorites that everyone's obsessed with! 🤩
             </p>
           </div>
           <Link to="/games" className="hidden md:block">
-            <Button variant="ghost" className="gap-2">
-              View All Games
-              <ArrowRight className="h-4 w-4" />
+            <Button variant="ghost" className="gap-2 text-lg">
+              View All
+              <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
         </div>
@@ -94,7 +99,7 @@ export function FeaturedGames() {
               className="group animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 hover:-translate-y-1">
+              <div className="bg-card rounded-3xl border-2 border-border overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 hover:-translate-y-2 hover:rotate-1">
                 {/* Image */}
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
@@ -104,35 +109,38 @@ export function FeaturedGames() {
                   />
                   {/* Status Badge */}
                   <div className="absolute top-3 right-3">
-                    <Badge className={`${statusConfig[game.status].class} border-0`}>
-                      {statusConfig[game.status].label}
+                    <Badge className={`${statusConfig[game.status].class} border-0 text-sm font-bold`}>
+                      {statusConfig[game.status].emoji} {statusConfig[game.status].label}
                     </Badge>
                   </div>
-                  {/* Category Badge */}
-                  <div className="absolute bottom-3 left-3">
-                    <Badge variant="outline" className={`${categoryColors[game.category]} backdrop-blur-sm`}>
-                      {game.category}
-                    </Badge>
+                  {/* Game Emoji */}
+                  <div className="absolute bottom-3 left-3 text-4xl drop-shadow-lg group-hover:animate-wiggle">
+                    {game.emoji}
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-4">
-                  <h3 className="font-display font-semibold text-lg mb-3 group-hover:text-accent transition-colors">
-                    {game.name}
-                  </h3>
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-display font-bold text-xl group-hover:text-primary transition-colors">
+                      {game.name}
+                    </h3>
+                    <Badge variant="outline" className={`${categoryColors[game.category]} border-2 font-bold`}>
+                      {game.category}
+                    </Badge>
+                  </div>
                   
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground font-medium">
                     <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
+                      <span>👥</span>
                       <span>{game.minPlayers}-{game.maxPlayers}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
+                      <span>⏱️</span>
                       <span>{game.duration}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4" />
+                      <span>🧠</span>
                       <span>{game.complexity}/5</span>
                     </div>
                   </div>
@@ -145,8 +153,8 @@ export function FeaturedGames() {
         {/* Mobile CTA */}
         <div className="md:hidden mt-8 text-center">
           <Link to="/games">
-            <Button variant="outline" className="gap-2">
-              View All Games
+            <Button variant="purple" className="gap-2">
+              View All Games 🎲
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
