@@ -2,111 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Board Game Rental - Cozy Game Night Design System */
+/* Boardy - Fun, Funky & Light-Hearted Design System */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Warm, trustworthy palette - Deep navy with amber accents */
-    --background: 40 33% 98%;
-    --foreground: 222 47% 11%;
+    /* Fun, vibrant palette - Purple, lime, yellow vibes */
+    --background: 270 50% 99%;
+    --foreground: 270 50% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 270 50% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 270 50% 15%;
 
-    /* Deep navy - Trust & professionalism */
-    --primary: 222 47% 18%;
-    --primary-foreground: 40 33% 98%;
+    /* Vibrant purple - Fun & playful */
+    --primary: 270 80% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Warm cream - Comfortable backgrounds */
-    --secondary: 40 25% 94%;
-    --secondary-foreground: 222 47% 18%;
+    /* Soft lavender background */
+    --secondary: 270 40% 95%;
+    --secondary-foreground: 270 50% 25%;
 
-    --muted: 40 20% 92%;
-    --muted-foreground: 222 20% 45%;
+    --muted: 270 30% 94%;
+    --muted-foreground: 270 20% 45%;
 
-    /* Warm amber - Fun, game night energy */
-    --accent: 36 100% 50%;
-    --accent-foreground: 222 47% 11%;
+    /* Zesty lime green - Energy! */
+    --accent: 85 75% 55%;
+    --accent-foreground: 270 50% 15%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 20% 88%;
-    --input: 40 20% 88%;
-    --ring: 36 100% 50%;
+    --border: 270 30% 90%;
+    --input: 270 30% 90%;
+    --ring: 270 80% 60%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Custom tokens */
-    --success: 142 71% 45%;
+    /* Fun custom tokens */
+    --success: 160 75% 45%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 11%;
-    --info: 199 89% 48%;
+    --warning: 45 100% 55%;
+    --warning-foreground: 270 50% 15%;
+    --info: 200 90% 55%;
     --info-foreground: 0 0% 100%;
 
-    /* Game status colors */
-    --available: 142 71% 45%;
-    --booked: 0 72% 51%;
-    --partial: 38 92% 50%;
-    --unavailable: 222 20% 60%;
+    /* Game status - fun colors */
+    --available: 160 75% 45%;
+    --booked: 350 80% 60%;
+    --partial: 45 100% 55%;
+    --unavailable: 270 20% 70%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(222 47% 18%) 0%, hsl(222 47% 28%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(36 100% 50%) 0%, hsl(28 100% 55%) 100%);
-    --gradient-warm: linear-gradient(180deg, hsl(40 33% 98%) 0%, hsl(40 25% 94%) 100%);
+    /* Funky gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(270 80% 60%) 0%, hsl(320 80% 65%) 50%, hsl(45 100% 65%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(85 75% 55%) 0%, hsl(160 75% 50%) 100%);
+    --gradient-fun: linear-gradient(135deg, hsl(45 100% 65%) 0%, hsl(25 100% 60%) 100%);
+    --gradient-purple: linear-gradient(135deg, hsl(270 80% 60%) 0%, hsl(290 80% 65%) 100%);
+    --gradient-warm: linear-gradient(180deg, hsl(270 50% 99%) 0%, hsl(270 40% 96%) 100%);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.08), 0 2px 4px -2px hsl(222 47% 11% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1), 0 4px 6px -4px hsl(222 47% 11% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.1), 0 8px 10px -6px hsl(222 47% 11% / 0.05);
-    --shadow-glow: 0 0 30px hsl(36 100% 50% / 0.3);
+    /* Playful shadows */
+    --shadow-sm: 0 2px 4px 0 hsl(270 80% 60% / 0.08);
+    --shadow-md: 0 4px 12px -2px hsl(270 80% 60% / 0.12);
+    --shadow-lg: 0 8px 24px -4px hsl(270 80% 60% / 0.15);
+    --shadow-xl: 0 16px 40px -8px hsl(270 80% 60% / 0.2);
+    --shadow-glow: 0 0 30px hsl(85 75% 55% / 0.4);
+    --shadow-fun: 0 8px 0 hsl(270 80% 50%);
 
     /* Sidebar */
-    --sidebar-background: 222 47% 18%;
-    --sidebar-foreground: 40 33% 98%;
-    --sidebar-primary: 36 100% 50%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 47% 25%;
-    --sidebar-accent-foreground: 40 33% 98%;
-    --sidebar-border: 222 47% 25%;
-    --sidebar-ring: 36 100% 50%;
+    --sidebar-background: 270 80% 60%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 85 75% 55%;
+    --sidebar-primary-foreground: 270 50% 15%;
+    --sidebar-accent: 270 80% 70%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 270 80% 70%;
+    --sidebar-ring: 85 75% 55%;
   }
 
   .dark {
-    --background: 222 47% 8%;
-    --foreground: 40 33% 98%;
+    --background: 270 50% 8%;
+    --foreground: 270 20% 95%;
 
-    --card: 222 47% 12%;
-    --card-foreground: 40 33% 98%;
+    --card: 270 50% 12%;
+    --card-foreground: 270 20% 95%;
 
-    --popover: 222 47% 12%;
-    --popover-foreground: 40 33% 98%;
+    --popover: 270 50% 12%;
+    --popover-foreground: 270 20% 95%;
 
-    --primary: 36 100% 50%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 270 80% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 18%;
-    --secondary-foreground: 40 33% 98%;
+    --secondary: 270 50% 18%;
+    --secondary-foreground: 270 20% 95%;
 
-    --muted: 222 47% 18%;
-    --muted-foreground: 40 20% 65%;
+    --muted: 270 50% 18%;
+    --muted-foreground: 270 20% 60%;
 
-    --accent: 36 100% 50%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 85 75% 55%;
+    --accent-foreground: 270 50% 15%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 47% 20%;
-    --input: 222 47% 20%;
-    --ring: 36 100% 50%;
+    --border: 270 50% 20%;
+    --input: 270 50% 20%;
+    --ring: 270 80% 65%;
   }
 }
 
@@ -117,11 +120,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Nunito', system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: 'Fredoka', system-ui, sans-serif;
     @apply font-semibold tracking-tight;
   }
 }
@@ -135,6 +138,14 @@
     background: var(--gradient-accent);
   }
 
+  .gradient-fun {
+    background: var(--gradient-fun);
+  }
+
+  .gradient-purple {
+    background: var(--gradient-purple);
+  }
+
   .gradient-warm {
     background: var(--gradient-warm);
   }
@@ -143,8 +154,12 @@
     box-shadow: var(--shadow-glow);
   }
 
+  .shadow-fun {
+    box-shadow: var(--shadow-fun);
+  }
+
   .glass {
-    @apply backdrop-blur-md bg-white/80 border border-white/20;
+    @apply backdrop-blur-md bg-white/80 border border-white/40;
   }
 
   .status-available {
@@ -162,6 +177,22 @@
   .status-unavailable {
     @apply bg-[hsl(var(--unavailable))] text-white;
   }
+
+  .blob {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+
+  .wiggle {
+    animation: wiggle 2.5s ease-in-out infinite;
+  }
+
+  .bounce-slow {
+    animation: bounce-slow 2s ease-in-out infinite;
+  }
+
+  .spin-slow {
+    animation: spin 8s linear infinite;
+  }
 }
 
 @layer utilities {
@@ -170,15 +201,33 @@
   }
 
   .animate-float {
-    animation: float 6s ease-in-out infinite;
+    animation: float 4s ease-in-out infinite;
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(5deg); }
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+
+  @keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
   }
 
   .animate-pulse-slow {
     animation: pulse 3s ease-in-out infinite;
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.5s ease-in-out;
+  }
+
+  .emoji-shadow {
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
   }
 }
