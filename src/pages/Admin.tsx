@@ -58,6 +58,21 @@ export default function Admin() {
     enabled: isAdmin,
   });
 
+  const updateRegistrationMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/registrations/${id}`, { status });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({ title: "Registration updated!" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to update registration", description: error.message, variant: "destructive" });
+    },
+  });
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -123,7 +138,6 @@ export default function Admin() {
               <EventsTab 
                 events={events || []} 
                 registrations={registrations || []}
-                updateRegistrationMutation={updateRegistrationMutation}
                 isLoading={eventsLoading || regsLoading} 
               />
             </TabsContent>
@@ -667,12 +681,10 @@ function RentalsTab({
 function EventsTab({ 
   events, 
   registrations,
-  updateRegistrationMutation,
   isLoading 
 }: { 
   events: Event[]; 
   registrations: RegistrationWithDetails[];
-  updateRegistrationMutation: any;
   isLoading: boolean 
 }) {
   const { toast } = useToast();
@@ -691,6 +703,21 @@ function EventsTab({
   });
 
   const eventRegistrations = registrations.filter(r => r.eventId === selectedEvent?.id);
+
+  const updateRegistrationMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/registrations/${id}`, { status });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({ title: "Registration updated!" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to update registration", description: error.message, variant: "destructive" });
+    },
+  });
 
   const addMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -1065,7 +1092,7 @@ function UsersTab({ users, isLoading }: { users: User[]; isLoading: boolean }) {
                     <ul className="space-y-2">
                       {userDetails.rentals?.map((rental: any) => (
                         <li key={rental.id} className="text-sm">
-                          {rental.game?.name} - <Badge size="sm">{rental.status}</Badge>
+                          {rental.game?.name} - <Badge>{rental.status}</Badge>
                         </li>
                       ))}
                     </ul>
@@ -1079,7 +1106,7 @@ function UsersTab({ users, isLoading }: { users: User[]; isLoading: boolean }) {
                     <ul className="space-y-2">
                       {userDetails.registrations?.map((reg: any) => (
                         <li key={reg.id} className="text-sm">
-                          {reg.event?.name} - <Badge size="sm">{reg.status}</Badge>
+                          {reg.event?.name} - <Badge>{reg.status}</Badge>
                         </li>
                       ))}
                     </ul>
