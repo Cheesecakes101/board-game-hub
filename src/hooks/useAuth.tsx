@@ -17,6 +17,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (data: { name: string; email: string; phone: string; roomNo: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<{ secretQuestion: string }>;
+  verifyAnswer: (email: string, answer: string) => Promise<{ success: boolean }>;
+  resetPassword: (data: any) => Promise<{ success: boolean }>;
   isAdmin: boolean;
 }
 
@@ -69,6 +72,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await logoutMutation.mutateAsync();
   };
 
+  const forgotPassword = async (email: string) => {
+    const res = await apiRequest("POST", "/api/auth/forgot-password", { email });
+    return res.json();
+  };
+
+  const verifyAnswer = async (email: string, answer: string) => {
+    const res = await apiRequest("POST", "/api/auth/verify-answer", { email, answer });
+    return res.json();
+  };
+
+  const resetPassword = async (data: any) => {
+    const res = await apiRequest("POST", "/api/auth/reset-password", data);
+    return res.json();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -77,6 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         signup,
         logout,
+        forgotPassword,
+        verifyAnswer,
+        resetPassword,
         isAdmin: user?.role === "admin",
       }}
     >

@@ -10,6 +10,8 @@ export const users = pgTable("users", {
   phone: text("phone").notNull(),
   roomNo: text("room_no").notNull(),
   password: text("password").notNull(),
+  secretQuestion: text("secret_question").notNull(),
+  secretAnswer: text("secret_answer").notNull(),
   role: text("role").notNull().default("user"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -116,6 +118,8 @@ export const signupSchema = z.object({
   phone: z.string().min(10),
   roomNo: z.string().min(1),
   password: z.string().min(6),
+  secretQuestion: z.string().min(1),
+  secretAnswer: z.string().min(1),
 });
 
 export const rentalRequestSchema = z.object({

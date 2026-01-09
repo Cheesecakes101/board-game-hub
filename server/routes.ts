@@ -44,9 +44,11 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Email already exists" });
       }
       const hashedPassword = await bcrypt.hash(data.password, 10);
+      const hashedAnswer = await bcrypt.hash(data.secretAnswer.toLowerCase().trim(), 10);
       const user = await storage.createUser({
         ...data,
         password: hashedPassword,
+        secretAnswer: hashedAnswer,
         role: "user",
       });
       
@@ -95,6 +97,55 @@ export function registerRoutes(app: Express) {
       return res.json(null);
     }
     res.json({ id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, roomNo: user.roomNo });
+  });
+
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({ secretQuestion: user.secretQuestion });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/auth/verify-answer", async (req, res) => {
+    try {
+      const { email, answer } = req.body;
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const valid = await bcrypt.compare(answer.toLowerCase().trim(), user.secretAnswer);
+      if (!valid) {
+        return res.status(401).json({ message: "Incorrect answer" });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { email, answer, newPassword } = req.body;
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const valid = await bcrypt.compare(answer.toLowerCase().trim(), user.secretAnswer);
+      if (!valid) {
+        return res.status(401).json({ message: "Incorrect answer" });
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await storage.updateUser(user.id, { password: hashedPassword });
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
   });
 
   app.get("/api/games", async (req, res) => {

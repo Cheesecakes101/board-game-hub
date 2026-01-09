@@ -69,6 +69,11 @@ export default function Login() {
               <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-login">
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
+              <div className="text-center">
+                <Link to="/forgot-password" size="sm" className="text-sm text-primary hover:underline" data-testid="link-forgot-password">
+                  Forgot Password?
+                </Link>
+              </div>
             </form>
             <div className="mt-6 text-center text-sm text-muted-foreground">
               Don't have an account?{" "}

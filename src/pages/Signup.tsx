@@ -17,6 +17,8 @@ export default function Signup() {
     roomNo: "",
     password: "",
     confirmPassword: "",
+    secretQuestion: "",
+    secretAnswer: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const { signup } = useAuth();
@@ -41,6 +43,8 @@ export default function Signup() {
         phone: formData.phone,
         roomNo: formData.roomNo,
         password: formData.password,
+        secretQuestion: formData.secretQuestion,
+        secretAnswer: formData.secretAnswer,
       });
       toast({ title: "Account created!", description: "Welcome to Boardy!" });
       navigate("/");
@@ -134,6 +138,28 @@ export default function Signup() {
                   onChange={handleChange("confirmPassword")}
                   required
                   data-testid="input-confirm-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secretQuestion">Secret Question</Label>
+                <Input
+                  id="secretQuestion"
+                  placeholder="e.g., What is your mother's maiden name?"
+                  value={formData.secretQuestion}
+                  onChange={handleChange("secretQuestion")}
+                  required
+                  data-testid="input-secret-question"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secretAnswer">Secret Answer</Label>
+                <Input
+                  id="secretAnswer"
+                  placeholder="Your answer"
+                  value={formData.secretAnswer}
+                  onChange={handleChange("secretAnswer")}
+                  required
+                  data-testid="input-secret-answer"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading} data-testid="button-signup">
