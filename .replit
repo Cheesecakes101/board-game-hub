@@ -9,7 +9,7 @@ packages = ["esbuild"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["node", "dist/server/index.js"]
+run = ["npm", "run", "start"]
 build = ["npm", "run", "build"]
 
 [workflows]

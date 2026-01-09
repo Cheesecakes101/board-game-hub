@@ -35,7 +35,9 @@ app.use(
 registerRoutes(app);
 
 if (process.env.NODE_ENV === "production") {
-  const distPath = path.resolve(__dirname, "../../dist");
+  // When running from dist/server/index.js, go up one level to find static files in dist/
+  const distPath = path.resolve(__dirname, "..");
+  console.log("Serving static files from:", distPath);
   app.use(express.static(distPath));
   // Ensure that all requests are redirected to index.html for client-side routing
   app.get("*", (req, res) => {
