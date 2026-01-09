@@ -9,18 +9,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Mail, Phone, Home, Edit, Package, Calendar, History, PlayCircle } from "lucide-react";
+import { Mail, Phone, Home, Edit, Package, Calendar, History, PlayCircle, Users } from "lucide-react";
 import type { Rental, EventRegistration, Event } from "@shared/schema";
 
 type RentalWithGame = Rental & { game?: any };
 type RegistrationWithEvent = EventRegistration & { event?: Event };
+type PersonPlayedWith = { id: number; name: string; email: string; eventsCount: number };
 
 export default function Profile() {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<"rentals" | "events">("rentals");
+  const [activeTab, setActiveTab] = useState<"rentals" | "events" | "people">("rentals");
 
   const { data: rentals, isLoading: rentalsLoading } = useQuery<RentalWithGame[]>({
     queryKey: ["/api/rentals/my"],
@@ -29,6 +30,11 @@ export default function Profile() {
 
   const { data: registrations, isLoading: regsLoading } = useQuery<RegistrationWithEvent[]>({
     queryKey: ["/api/registrations/my"],
+    enabled: !!user,
+  });
+
+  const { data: peoplePlayedWith } = useQuery<PersonPlayedWith[]>({
+    queryKey: ["/api/people-played-with"],
     enabled: !!user,
   });
 
@@ -58,10 +64,11 @@ export default function Profile() {
   }
 
   const activeRentals = rentals?.filter(r => r.status === "active") || [];
+  const attendedEvents = registrations?.filter(r => r.attended) || [];
   const stats = [
     { label: "Games Rented", value: rentals?.length || 0, icon: Package },
-    { label: "Events Attended", value: registrations?.filter(r => r.status === "confirmed").length || 0, icon: Calendar },
-    { label: "Total Rentals", value: rentals?.length || 0, icon: History },
+    { label: "Events Attended", value: attendedEvents.length, icon: Calendar },
+    { label: "People Played With", value: peoplePlayedWith?.length || 0, icon: Users },
     { label: "Active Rentals", value: activeRentals.length, icon: PlayCircle },
   ];
 
@@ -129,22 +136,30 @@ export default function Profile() {
 
           {/* Right Column: Tabs/History */}
           <div className="lg:col-span-2">
-            <div className="bg-[#f0ece4] p-1 rounded-xl flex gap-1 mb-6 max-w-sm">
+            <div className="bg-[#f0ece4] p-1 rounded-xl flex gap-1 mb-6">
               <Button 
                 variant="ghost" 
-                className={`flex-1 ${activeTab === "rentals" ? "bg-white shadow-sm hover:bg-white" : "hover:bg-[#e5e1d9] text-muted-foreground"} rounded-lg py-2 h-auto`}
+                className={`flex-1 ${activeTab === "rentals" ? "bg-white shadow-sm hover:bg-white" : "hover:bg-[#e5e1d9] text-muted-foreground"} rounded-lg py-2 h-auto text-sm`}
                 onClick={() => setActiveTab("rentals")}
                 data-testid="tab-rental-history"
               >
-                Rental History
+                Rentals
               </Button>
               <Button 
                 variant="ghost" 
-                className={`flex-1 ${activeTab === "events" ? "bg-white shadow-sm hover:bg-white" : "hover:bg-[#e5e1d9] text-muted-foreground"} rounded-lg py-2 h-auto`}
+                className={`flex-1 ${activeTab === "events" ? "bg-white shadow-sm hover:bg-white" : "hover:bg-[#e5e1d9] text-muted-foreground"} rounded-lg py-2 h-auto text-sm`}
                 onClick={() => setActiveTab("events")}
                 data-testid="tab-events"
               >
                 Events
+              </Button>
+              <Button 
+                variant="ghost" 
+                className={`flex-1 ${activeTab === "people" ? "bg-white shadow-sm hover:bg-white" : "hover:bg-[#e5e1d9] text-muted-foreground"} rounded-lg py-2 h-auto text-sm`}
+                onClick={() => setActiveTab("people")}
+                data-testid="tab-people"
+              >
+                Played With
               </Button>
             </div>
 
@@ -204,10 +219,51 @@ export default function Profile() {
                            </div>
                            <div className="flex-1">
                              <h4 className="font-bold">{reg.event?.name}</h4>
-                             <p className="text-xs text-muted-foreground">Status: {reg.status}</p>
+                             <p className="text-xs text-muted-foreground">
+                               Status: {reg.status} {reg.attended && " - Attended"}
+                             </p>
                            </div>
                         </div>
                       ))}
+                    </div>
+                  )
+                )}
+
+                {activeTab === "people" && (
+                  !peoplePlayedWith || peoplePlayedWith.length === 0 ? (
+                    <>
+                      <div className="bg-[#faf9f6] p-4 rounded-2xl mb-4">
+                        <Users className="w-12 h-12 text-muted-foreground/40" />
+                      </div>
+                      <p className="text-muted-foreground font-medium mb-2">No gaming buddies yet</p>
+                      <p className="text-sm text-muted-foreground mb-6">Attend Saturday events to meet fellow gamers!</p>
+                      <Button 
+                        className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-8 rounded-xl py-6 h-auto"
+                        onClick={() => navigate("/events")}
+                        data-testid="button-find-events"
+                      >
+                        Find Events
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="w-full space-y-4">
+                      {peoplePlayedWith.map((person) => {
+                        const avatarUrl = `https://api.dicebear.com/7.x/funmoji/svg?seed=${person.email}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+                        return (
+                          <div key={person.id} className="flex items-center gap-4 p-4 rounded-xl bg-[#faf9f6]">
+                            <Avatar className="w-12 h-12 border-2 border-white shadow">
+                              <AvatarImage src={avatarUrl} alt={person.name} />
+                              <AvatarFallback>{person.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <h4 className="font-bold">{person.name}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                Played together at {person.eventsCount} event{person.eventsCount > 1 ? 's' : ''}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )
                 )}

@@ -5,8 +5,6 @@ import bcrypt from "bcryptjs";
 import {
   loginSchema,
   signupSchema,
-  insertGameSchema,
-  insertEventSchema,
   rentalRequestSchema,
   eventRegistrationRequestSchema,
 } from "@shared/schema";
@@ -163,8 +161,7 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/games", requireAdmin, async (req, res) => {
     try {
-      const data = insertGameSchema.parse(req.body);
-      const game = await storage.createGame(data);
+      const game = await storage.createGame(req.body);
       res.json(game);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -262,11 +259,10 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/events", requireAdmin, async (req, res) => {
     try {
-      const data = insertEventSchema.parse({
+      const event = await storage.createEvent({
         ...req.body,
         date: new Date(req.body.date),
       });
-      const event = await storage.createEvent(data);
       res.json(event);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -311,6 +307,7 @@ export function registerRoutes(app: Express) {
         userId: req.session.userId!,
         eventId: data.eventId,
         status: "pending",
+        attended: false,
         paymentPhone: data.paymentPhone || null,
         paymentTime: data.paymentTime ? new Date(data.paymentTime) : null,
       });
@@ -350,5 +347,15 @@ export function registerRoutes(app: Express) {
     const rentals = await storage.getRentalsByUser(user.id);
     const registrations = await storage.getEventRegistrationsByUser(user.id);
     res.json({ ...user, password: undefined, rentals, registrations });
+  });
+
+  app.get("/api/people-played-with", requireAuth, async (req, res) => {
+    const people = await storage.getPeoplePlayedWith(req.session.userId!);
+    res.json(people.map(p => ({ 
+      id: p.user.id, 
+      name: p.user.name, 
+      email: p.user.email,
+      eventsCount: p.eventsCount 
+    })));
   });
 }

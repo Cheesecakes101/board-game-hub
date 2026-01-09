@@ -38,7 +38,8 @@ export interface IStorage {
   getEventRegistrationsByEvent(eventId: number): Promise<(EventRegistration & { user?: User })[]>;
   getEventRegistrationsByUser(userId: number): Promise<(EventRegistration & { event?: Event })[]>;
   createEventRegistration(registration: InsertEventRegistration): Promise<EventRegistration>;
-  updateEventRegistration(id: number, registration: Partial<InsertEventRegistration> & { status?: string }): Promise<EventRegistration | undefined>;
+  updateEventRegistration(id: number, registration: Partial<InsertEventRegistration> & { status?: string; attended?: boolean }): Promise<EventRegistration | undefined>;
+  getPeoplePlayedWith(userId: number): Promise<{ user: User; eventsCount: number }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -190,9 +191,40 @@ export class DatabaseStorage implements IStorage {
     return newReg;
   }
 
-  async updateEventRegistration(id: number, data: Partial<InsertEventRegistration> & { status?: string }): Promise<EventRegistration | undefined> {
+  async updateEventRegistration(id: number, data: Partial<InsertEventRegistration> & { status?: string; attended?: boolean }): Promise<EventRegistration | undefined> {
     const [updated] = await db.update(eventRegistrations).set(data).where(eq(eventRegistrations.id, id)).returning();
     return updated || undefined;
+  }
+
+  async getPeoplePlayedWith(userId: number): Promise<{ user: User; eventsCount: number }[]> {
+    const myRegs = await db.select().from(eventRegistrations)
+      .where(and(eq(eventRegistrations.userId, userId), eq(eventRegistrations.attended, true)));
+    
+    const eventIds = myRegs.map(r => r.eventId);
+    if (eventIds.length === 0) return [];
+
+    const peopleMap = new Map<number, number>();
+    
+    for (const eventId of eventIds) {
+      const attendees = await db.select().from(eventRegistrations)
+        .where(and(eq(eventRegistrations.eventId, eventId), eq(eventRegistrations.attended, true)));
+      
+      for (const attendee of attendees) {
+        if (attendee.userId !== userId) {
+          peopleMap.set(attendee.userId, (peopleMap.get(attendee.userId) || 0) + 1);
+        }
+      }
+    }
+
+    const result: { user: User; eventsCount: number }[] = [];
+    for (const [otherUserId, count] of peopleMap.entries()) {
+      const [otherUser] = await db.select().from(users).where(eq(users.id, otherUserId));
+      if (otherUser) {
+        result.push({ user: otherUser, eventsCount: count });
+      }
+    }
+
+    return result.sort((a, b) => b.eventsCount - a.eventsCount);
   }
 }
 

@@ -62,6 +62,7 @@ export const eventRegistrations = pgTable("event_registrations", {
   userId: integer("user_id").notNull().references(() => users.id),
   eventId: integer("event_id").notNull().references(() => events.id),
   status: text("status").notNull().default("pending"),
+  attended: boolean("attended").notNull().default(false),
   paymentPhone: text("payment_phone"),
   paymentTime: timestamp("payment_time"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -90,28 +91,16 @@ export const eventRegistrationsRelations = relations(eventRegistrations, ({ one 
   event: one(events, { fields: [eventRegistrations.eventId], references: [events.id] }),
 }));
 
-export const insertUserSchema = createInsertSchema(users, {
-  secretQuestion: z.string().min(1),
-  secretAnswer: z.string().min(1),
-}).omit({ 
-  id: true, 
-  createdAt: true 
-});
-export const insertGameSchema = createInsertSchema(games).omit({ id: true, createdAt: true });
-export const insertRentalSchema = createInsertSchema(rentals).omit({ id: true, createdAt: true });
-export const insertEventSchema = createInsertSchema(events).omit({ id: true, createdAt: true });
-export const insertEventRegistrationSchema = createInsertSchema(eventRegistrations).omit({ id: true, createdAt: true });
-
 export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertUser = Omit<User, 'id' | 'createdAt'>;
 export type Game = typeof games.$inferSelect;
-export type InsertGame = z.infer<typeof insertGameSchema>;
+export type InsertGame = Omit<Game, 'id' | 'createdAt'>;
 export type Rental = typeof rentals.$inferSelect;
-export type InsertRental = z.infer<typeof insertRentalSchema>;
+export type InsertRental = Omit<Rental, 'id' | 'createdAt'>;
 export type Event = typeof events.$inferSelect;
-export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type InsertEvent = Omit<Event, 'id' | 'createdAt'>;
 export type EventRegistration = typeof eventRegistrations.$inferSelect;
-export type InsertEventRegistration = z.infer<typeof insertEventRegistrationSchema>;
+export type InsertEventRegistration = Omit<EventRegistration, 'id' | 'createdAt'>;
 
 export const loginSchema = z.object({
   email: z.string().email(),
