@@ -66,6 +66,10 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate("/profile")} data-testid="menu-profile">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/my-rentals")} data-testid="menu-my-rentals">
                   <Package className="h-4 w-4 mr-2" />
                   My Rentals

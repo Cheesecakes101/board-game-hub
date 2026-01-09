@@ -13,6 +13,7 @@ import EventDetail from "./pages/EventDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import MyRentals from "./pages/MyRentals";
+import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/my-rentals" element={<MyRentals />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
