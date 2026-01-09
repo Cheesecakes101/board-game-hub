@@ -55,31 +55,39 @@ export async function sendWelcomeEmail(to: string, name: string) {
     const gmail = await getUncachableGmailClient();
     
     const subject = "Welcome to Boardy - Let's Get Playing!";
-    const body = `
-      Hi ${name},
+    const htmlBody = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h1 style="color: #8b5cf6; margin-bottom: 24px;">Welcome to Boardy!</h1>
+        <p style="font-size: 16px; color: #475569; line-height: 1.6;">Hi ${name},</p>
+        <p style="font-size: 16px; color: #475569; line-height: 1.6;">We're thrilled to have you join our community of board game enthusiasts. Boardy is your home for discovering and playing the best games with friends.</p>
+        
+        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 24px 0;">
+          <h2 style="font-size: 18px; color: #1e293b; margin-top: 0;">What you can do:</h2>
+          <ul style="color: #475569; line-height: 1.6;">
+            <li>Browse and rent from our extensive collection</li>
+            <li>Join our Saturday Night Gaming events</li>
+            <li>Connect with fellow gamers nearby</li>
+          </ul>
+        </div>
 
-      Welcome to Boardy! We're thrilled to have you join our community of board game enthusiasts.
+        <div style="text-align: center; margin-top: 32px;">
+          <a href="https://${process.env.REPLIT_DEV_DOMAIN}" style="background-color: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Explore Games</a>
+        </div>
 
-      With Boardy, you can:
-      - Browse and rent from our extensive collection of board games.
-      - Join our legendary Saturday Night Gaming events.
-      - Meet fellow gamers in your hostel.
-
-      Log in now to start exploring: ${process.env.REPLIT_DEV_DOMAIN || 'your-app-url'}
-
-      Happy gaming!
-      The Boardy Team
+        <hr style="margin-top: 40px; border: 0; border-top: 1px solid #e2e8f0;" />
+        <p style="font-size: 14px; color: #94a3b8; text-align: center;">Happy gaming!<br/>The Boardy Team</p>
+      </div>
     `;
 
     const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
     const messageParts = [
       `From: Boardy <me>`,
       `To: ${to}`,
-      `Content-Type: text/plain; charset=utf-8`,
+      `Content-Type: text/html; charset=utf-8`,
       `MIME-Version: 1.0`,
       `Subject: ${utf8Subject}`,
       ``,
-      body,
+      htmlBody,
     ];
     const message = messageParts.join('\n');
 
