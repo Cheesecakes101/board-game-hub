@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
@@ -16,6 +17,8 @@ type RegistrationWithEvent = EventRegistration & { event?: Event };
 export default function Profile() {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
+
+  const [activeTab, setActiveTab] = useState<"rentals" | "events">("rentals");
 
   const { data: rentals, isLoading: rentalsLoading } = useQuery<RentalWithGame[]>({
     queryKey: ["/api/rentals/my"],
@@ -95,7 +98,11 @@ export default function Profile() {
                   </div>
                 </div>
 
-                <Button className="w-full mt-8 bg-[#2dd4bf] hover:bg-[#26bba8] text-white rounded-xl py-6" data-testid="button-edit-profile">
+                <Button 
+                  className="w-full mt-8 bg-[#2dd4bf] hover:bg-[#26bba8] text-white rounded-xl py-6" 
+                  data-testid="button-edit-profile"
+                  onClick={() => toast({ title: "Coming Soon", description: "Profile editing will be available in the next update!" })}
+                >
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Profile
                 </Button>
@@ -121,44 +128,86 @@ export default function Profile() {
           {/* Right Column: Tabs/History */}
           <div className="lg:col-span-2">
             <div className="bg-[#f0ece4] p-1 rounded-xl flex gap-1 mb-6 max-w-sm">
-              <Button variant="ghost" className="flex-1 bg-white shadow-sm hover:bg-white rounded-lg py-2 h-auto" data-testid="tab-rental-history">
+              <Button 
+                variant="ghost" 
+                className={`flex-1 ${activeTab === "rentals" ? "bg-white shadow-sm hover:bg-white" : "hover:bg-[#e5e1d9] text-muted-foreground"} rounded-lg py-2 h-auto`}
+                onClick={() => setActiveTab("rentals")}
+                data-testid="tab-rental-history"
+              >
                 Rental History
               </Button>
-              <Button variant="ghost" className="flex-1 hover:bg-[#e5e1d9] rounded-lg py-2 h-auto text-muted-foreground" data-testid="tab-events">
+              <Button 
+                variant="ghost" 
+                className={`flex-1 ${activeTab === "events" ? "bg-white shadow-sm hover:bg-white" : "hover:bg-[#e5e1d9] text-muted-foreground"} rounded-lg py-2 h-auto`}
+                onClick={() => setActiveTab("events")}
+                data-testid="tab-events"
+              >
                 Events
               </Button>
             </div>
 
             <Card className="border-none shadow-sm min-h-[400px]">
               <CardContent className="flex flex-col items-center justify-center py-20">
-                {!rentals || rentals.length === 0 ? (
-                  <>
-                    <div className="bg-[#faf9f6] p-4 rounded-2xl mb-4">
-                      <Package className="w-12 h-12 text-muted-foreground/40" />
-                    </div>
-                    <p className="text-muted-foreground font-medium mb-6">No rentals yet</p>
-                    <Button 
-                      className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-8 rounded-xl py-6 h-auto"
-                      onClick={() => navigate("/games")}
-                      data-testid="button-browse-games"
-                    >
-                      Browse Games
-                    </Button>
-                  </>
-                ) : (
-                  <div className="w-full space-y-4">
-                    {rentals.map((rental) => (
-                      <div key={rental.id} className="flex items-center gap-4 p-4 rounded-xl bg-[#faf9f6]">
-                         <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border">
-                           <Package className="w-6 h-6 text-primary" />
-                         </div>
-                         <div className="flex-1">
-                           <h4 className="font-bold">{rental.game?.name}</h4>
-                           <p className="text-xs text-muted-foreground">Status: {rental.status}</p>
-                         </div>
+                {activeTab === "rentals" ? (
+                  !rentals || rentals.length === 0 ? (
+                    <>
+                      <div className="bg-[#faf9f6] p-4 rounded-2xl mb-4">
+                        <Package className="w-12 h-12 text-muted-foreground/40" />
                       </div>
-                    ))}
-                  </div>
+                      <p className="text-muted-foreground font-medium mb-6">No rentals yet</p>
+                      <Button 
+                        className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-8 rounded-xl py-6 h-auto"
+                        onClick={() => navigate("/games")}
+                        data-testid="button-browse-games"
+                      >
+                        Browse Games
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="w-full space-y-4">
+                      {rentals.map((rental) => (
+                        <div key={rental.id} className="flex items-center gap-4 p-4 rounded-xl bg-[#faf9f6]">
+                           <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border">
+                             <Package className="w-6 h-6 text-primary" />
+                           </div>
+                           <div className="flex-1">
+                             <h4 className="font-bold">{rental.game?.name}</h4>
+                             <p className="text-xs text-muted-foreground">Status: {rental.status}</p>
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  !registrations || registrations.length === 0 ? (
+                    <>
+                      <div className="bg-[#faf9f6] p-4 rounded-2xl mb-4">
+                        <Calendar className="w-12 h-12 text-muted-foreground/40" />
+                      </div>
+                      <p className="text-muted-foreground font-medium mb-6">No events joined yet</p>
+                      <Button 
+                        className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-8 rounded-xl py-6 h-auto"
+                        onClick={() => navigate("/events")}
+                        data-testid="button-browse-events"
+                      >
+                        Browse Events
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="w-full space-y-4">
+                      {registrations.map((reg) => (
+                        <div key={reg.id} className="flex items-center gap-4 p-4 rounded-xl bg-[#faf9f6]">
+                           <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border">
+                             <Calendar className="w-6 h-6 text-primary" />
+                           </div>
+                           <div className="flex-1">
+                             <h4 className="font-bold">{reg.event?.name}</h4>
+                             <p className="text-xs text-muted-foreground">Status: {reg.status}</p>
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
                 )}
               </CardContent>
             </Card>
