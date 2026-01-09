@@ -35,7 +35,7 @@ app.use(
 registerRoutes(app);
 
 if (process.env.NODE_ENV === "production") {
-  const distPath = path.resolve(__dirname, "../dist");
+  const distPath = path.resolve(__dirname, "../../dist");
   app.use(express.static(distPath));
   // Ensure that all requests are redirected to index.html for client-side routing
   app.get("*", (req, res) => {
