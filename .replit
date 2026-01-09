@@ -5,12 +5,12 @@ integrations = ["javascript_database:1.0.0", "google-mail:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["esbuild"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npm", "run", "start"]
+run = ["node", "dist/server/index.js"]
 build = ["npm", "run", "build"]
+publicDir = "dist"
 
 [workflows]
 runButton = "Project"

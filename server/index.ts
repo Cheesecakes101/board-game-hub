@@ -31,24 +31,16 @@ app.use(
   })
 );
 
-// registerRoutes must be called before serving static files
 registerRoutes(app);
 
 if (process.env.NODE_ENV === "production") {
-  // When running from dist/server/index.js, go up one level to find static files in dist/
-  const distPath = path.resolve(__dirname, "..");
-  console.log("Serving static files from:", distPath);
-  app.use(express.static(distPath));
-  // Ensure that all requests are redirected to index.html for client-side routing
+  app.use(express.static(path.join(__dirname, "../dist")));
   app.get("*", (req, res) => {
-    if (req.path.startsWith("/api")) {
-      return res.status(404).json({ message: "API endpoint not found" });
-    }
-    res.sendFile(path.join(distPath, "index.html"));
+    res.sendFile(path.join(__dirname, "../dist/index.html"));
   });
 }
 
-const PORT = Number(process.env.PORT) || (process.env.NODE_ENV === "production" ? 5000 : 3001);
-app.listen(PORT, "0.0.0.0", () => {
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
