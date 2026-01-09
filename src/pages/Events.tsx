@@ -5,9 +5,10 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, MapPin, Users, ArrowRight } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, ArrowRight, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
-import type { Event } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import type { Event, EventRegistration } from "@shared/schema";
 
 const highlights = [
   { text: "Meet cool people from different floors" },
@@ -18,9 +19,15 @@ const highlights = [
 
 const Events = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: events, isLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"],
+  });
+
+  const { data: myRegistrations } = useQuery<EventRegistration[]>({
+    queryKey: ["/api/registrations/my"],
+    enabled: !!user,
   });
 
   const upcomingEvents = events?.filter(e => new Date(e.date) >= new Date()) || [];
@@ -128,12 +135,19 @@ const Events = () => {
                         </div>
                       </div>
                       
-                      <Link to={`/events/${event.id}`}>
-                        <Button className="w-full gap-2 text-lg" data-testid={`button-register-event-${event.id}`}>
-                          Register Now
-                          <ArrowRight className="h-5 w-5" />
+                      {myRegistrations?.some(r => r.eventId === event.id) ? (
+                        <Button className="w-full gap-2 text-lg bg-green-500 hover:bg-green-600 pointer-events-none" data-testid={`status-registered-${event.id}`}>
+                          <CheckCircle2 className="h-5 w-5" />
+                          Registered
                         </Button>
-                      </Link>
+                      ) : (
+                        <Link to={`/events/${event.id}`}>
+                          <Button className="w-full gap-2 text-lg" data-testid={`button-register-event-${event.id}`}>
+                            Register Now
+                            <ArrowRight className="h-5 w-5" />
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 ))}

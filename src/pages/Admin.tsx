@@ -862,32 +862,39 @@ function EventsTab({
               <TableHead>Name</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Location</TableHead>
-              <TableHead>Price</TableHead>
+              <TableHead>Capacity</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {events.map((event) => (
-              <TableRow key={event.id} data-testid={`event-row-${event.id}`}>
-                <TableCell className="font-medium">{event.name}</TableCell>
-                <TableCell>{format(new Date(event.date), "MMM d, yyyy")}</TableCell>
-                <TableCell>{event.location}</TableCell>
-                <TableCell>Rs. {event.price}</TableCell>
-                <TableCell>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedEvent(event);
-                      setIsManageDialogOpen(true);
-                    }}
-                    data-testid={`button-manage-event-${event.id}`}
-                  >
-                    <Eye className="h-4 w-4 mr-1" /> Manage
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {events.map((event) => {
+              const eventRegs = registrations.filter(r => r.eventId === event.id && r.status === "confirmed");
+              return (
+                <TableRow key={event.id} data-testid={`event-row-${event.id}`}>
+                  <TableCell className="font-medium">{event.name}</TableCell>
+                  <TableCell>{format(new Date(event.date), "MMM d, yyyy")}</TableCell>
+                  <TableCell>{event.location}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {eventRegs.length} / {event.capacity}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedEvent(event);
+                        setIsManageDialogOpen(true);
+                      }}
+                      data-testid={`button-manage-event-${event.id}`}
+                    >
+                      <Eye className="h-4 w-4 mr-1" /> Manage
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
 
