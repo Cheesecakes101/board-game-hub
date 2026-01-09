@@ -27,6 +27,7 @@ export const games = pgTable("games", {
   complexity: text("complexity").notNull(),
   imageUrl: text("image_url"),
   rulesUrl: text("rules_url"),
+  videoRulesUrl: text("video_rules_url"),
   whatsInTheBox: json("whats_in_the_box").$type<string[]>().default([]),
   available: boolean("available").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),

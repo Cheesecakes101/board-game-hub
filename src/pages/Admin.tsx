@@ -166,6 +166,7 @@ function GamesTab({ games, isLoading }: { games: Game[]; isLoading: boolean }) {
     complexity: "",
     imageUrl: "",
     rulesUrl: "",
+    videoRulesUrl: "",
     whatsInTheBox: "",
   });
 
@@ -253,6 +254,7 @@ function GamesTab({ games, isLoading }: { games: Game[]; isLoading: boolean }) {
       complexity: game.complexity,
       imageUrl: game.imageUrl || "",
       rulesUrl: game.rulesUrl || "",
+      videoRulesUrl: game.videoRulesUrl || "",
       whatsInTheBox: (game.whatsInTheBox || []).join("\n"),
     });
     setIsEditDialogOpen(true);
@@ -471,6 +473,16 @@ function GameForm({
           onChange={(e) => setFormData({ ...formData, rulesUrl: e.target.value })}
           placeholder="Link to game rules PDF"
           data-testid="input-game-rules"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="videoRulesUrl">Video Rules URL (YouTube/Vimeo)</Label>
+        <Input
+          id="videoRulesUrl"
+          value={formData.videoRulesUrl}
+          onChange={(e) => setFormData({ ...formData, videoRulesUrl: e.target.value })}
+          placeholder="Link to video explanation"
+          data-testid="input-game-video-rules"
         />
       </div>
       <div className="space-y-2">

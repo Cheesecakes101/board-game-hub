@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, Clock, Users, Brain, ExternalLink, Package } from "lucide-react";
+import { ArrowLeft, Clock, Users, Brain, ExternalLink, Package, PlayCircle } from "lucide-react";
 import type { Game } from "@shared/schema";
 
 export default function GameDetail() {
@@ -162,16 +162,29 @@ export default function GameDetail() {
                 </div>
               </div>
 
-              {game.rulesUrl && (
-                <Button
-                  variant="outline"
-                  className="gap-2"
-                  onClick={() => window.open(game.rulesUrl!, "_blank")}
-                  data-testid="button-view-rules"
-                >
-                  <ExternalLink className="h-4 w-4" /> View Rules
-                </Button>
-              )}
+              <div className="flex flex-wrap gap-4">
+                {game.rulesUrl && (
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => window.open(game.rulesUrl!, "_blank")}
+                    data-testid="button-view-rules"
+                  >
+                    <ExternalLink className="h-4 w-4" /> View Rules
+                  </Button>
+                )}
+
+                {game.videoRulesUrl && (
+                  <Button
+                    variant="outline"
+                    className="gap-2 border-primary text-primary hover:bg-primary/5"
+                    onClick={() => window.open(game.videoRulesUrl!, "_blank")}
+                    data-testid="button-view-video-rules"
+                  >
+                    <PlayCircle className="h-4 w-4" /> Watch Video Rules
+                  </Button>
+                )}
+              </div>
 
               <Dialog open={isRentDialogOpen} onOpenChange={setIsRentDialogOpen}>
                 <DialogTrigger asChild>
