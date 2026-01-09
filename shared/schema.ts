@@ -130,3 +130,21 @@ export const eventRegistrationRequestSchema = z.object({
   paymentPhone: z.string().optional(),
   paymentTime: z.string().optional(),
 });
+
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(), // 'payment_approved', 'payment_rejected', 'rental_reminder', 'rental_overdue', 'event_reminder', 'admin_alert'
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  read: boolean("read").notNull().default(false),
+  relatedId: integer("related_id"), // ID of rental or event
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, { fields: [notifications.userId], references: [users.id] }),
+}));
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = Omit<Notification, 'id' | 'createdAt'>;

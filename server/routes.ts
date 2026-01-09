@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { sendWelcomeEmail } from "./lib/email";
 import bcrypt from "bcryptjs";
+import { format } from "date-fns";
 import {
   loginSchema,
   signupSchema,
@@ -357,5 +358,120 @@ export function registerRoutes(app: Express) {
       email: p.user.email,
       eventsCount: p.eventsCount 
     })));
+  });
+
+  // Notifications
+  app.get("/api/notifications", requireAuth, async (req, res) => {
+    const userId = req.session.userId!;
+    
+    // Opportunistic reminders logic
+    const rentals = await storage.getRentalsByUser(userId);
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+
+    for (const rental of rentals) {
+      if (rental.status === "active" || rental.status === "approved") {
+        const endDate = new Date(rental.endDate);
+        
+        // Rental Overdue
+        if (endDate < now) {
+          const existing = await storage.getNotificationByRelatedId(userId, rental.id, 'rental_overdue');
+          if (!existing) {
+            await storage.createNotification({
+              userId,
+              type: 'rental_overdue',
+              title: 'Rental Overdue!',
+              message: `Your rental for ${rental.game?.name} was due on ${format(endDate, "MMM d")}. Please return it soon!`,
+              relatedId: rental.id,
+              read: false
+            });
+          }
+        } 
+        // Rental Due Tomorrow
+        else if (endDate <= tomorrow) {
+          const existing = await storage.getNotificationByRelatedId(userId, rental.id, 'rental_reminder');
+          if (!existing) {
+            await storage.createNotification({
+              userId,
+              type: 'rental_reminder',
+              title: 'Rental Due Tomorrow',
+              message: `Your rental for ${rental.game?.name} is due tomorrow, ${format(endDate, "MMM d")}.`,
+              relatedId: rental.id,
+              read: false
+            });
+          }
+        }
+      }
+    }
+
+    // Event Reminders (Saturday morning check)
+    if (now.getDay() === 6) { // Saturday
+      const regs = await storage.getEventRegistrationsByUser(userId);
+      for (const reg of regs) {
+        if (reg.status === "approved") {
+          const eventDate = new Date(reg.event?.date || "");
+          if (eventDate.toDateString() === now.toDateString()) {
+            const existing = await storage.getNotificationByRelatedId(userId, reg.eventId, 'event_reminder');
+            if (!existing) {
+              await storage.createNotification({
+                userId,
+                type: 'event_reminder',
+                title: 'Event Today!',
+                message: `Don't forget: ${reg.event?.name} is happening today at ${reg.event?.time}!`,
+                relatedId: reg.eventId,
+                read: false
+              });
+            }
+          }
+        }
+      }
+    }
+
+    const notifs = await storage.getNotifications(userId);
+    res.json(notifs);
+  });
+
+  app.post("/api/notifications/:id/read", requireAuth, async (req, res) => {
+    await storage.markNotificationRead(parseInt(req.params.id));
+    res.json({ success: true });
+  });
+
+  // Updated rental approval to trigger notification
+  const originalRentalPatch = app.patch("/api/rentals/:id", requireAdmin, async (req, res) => {
+    try {
+      const rentalId = parseInt(req.params.id);
+      const oldRental = await storage.getRental(rentalId);
+      const rental = await storage.updateRental(rentalId, req.body);
+      
+      if (!rental) {
+        return res.status(404).json({ message: "Rental not found" });
+      }
+
+      if (req.body.status && oldRental?.status !== req.body.status) {
+        if (req.body.status === "active" || req.body.status === "approved") {
+          await storage.createNotification({
+            userId: rental.userId,
+            type: 'payment_approved',
+            title: 'Payment Approved',
+            message: `Your payment for ${rental.gameId} has been approved. You can now pick up the game!`,
+            relatedId: rental.id,
+            read: false
+          });
+        } else if (req.body.status === "cancelled") {
+          await storage.createNotification({
+            userId: rental.userId,
+            type: 'payment_rejected',
+            title: 'Payment Rejected',
+            message: `Your payment for rental #${rental.id} was rejected. Please contact admin.`,
+            relatedId: rental.id,
+            read: false
+          });
+        }
+      }
+      res.json(rental);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
   });
 }

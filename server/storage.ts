@@ -1,10 +1,11 @@
 import {
-  users, games, rentals, events, eventRegistrations,
+  users, games, rentals, events, eventRegistrations, notifications,
   type User, type InsertUser,
   type Game, type InsertGame,
   type Rental, type InsertRental,
   type Event, type InsertEvent,
   type EventRegistration, type InsertEventRegistration,
+  type Notification, type InsertNotification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -40,6 +41,12 @@ export interface IStorage {
   createEventRegistration(registration: InsertEventRegistration): Promise<EventRegistration>;
   updateEventRegistration(id: number, registration: Partial<InsertEventRegistration> & { status?: string; attended?: boolean }): Promise<EventRegistration | undefined>;
   getPeoplePlayedWith(userId: number): Promise<{ user: User; eventsCount: number }[]>;
+
+  // Notifications
+  getNotifications(userId: number): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationRead(id: number): Promise<void>;
+  getNotificationByRelatedId(userId: number, relatedId: number, type: string): Promise<Notification | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -225,6 +232,31 @@ export class DatabaseStorage implements IStorage {
     }
 
     return result.sort((a, b) => b.eventsCount - a.eventsCount);
+  }
+
+  async getNotifications(userId: number): Promise<Notification[]> {
+    return db.select().from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotif] = await db.insert(notifications).values(notification).returning();
+    return newNotif;
+  }
+
+  async markNotificationRead(id: number): Promise<void> {
+    await db.update(notifications).set({ read: true }).where(eq(notifications.id, id));
+  }
+
+  async getNotificationByRelatedId(userId: number, relatedId: number, type: string): Promise<Notification | undefined> {
+    const [notif] = await db.select().from(notifications)
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.relatedId, relatedId),
+        eq(notifications.type, type)
+      ));
+    return notif || undefined;
   }
 }
 

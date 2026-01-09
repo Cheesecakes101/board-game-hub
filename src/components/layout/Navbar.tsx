@@ -3,9 +3,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, LogIn, LogOut, User, Settings, Package } from "lucide-react";
+import { Menu, LogIn, LogOut, User, Settings, Package, Bell, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import type { Notification } from "@shared/schema";
 
 const navLinks = [
   { href: "/games", label: "Games" },
@@ -18,6 +23,23 @@ export function Navbar() {
   const navigate = useNavigate();
   const { user, isAdmin, logout } = useAuth();
   const { toast } = useToast();
+
+  const { data: notifications } = useQuery<Notification[]>({
+    queryKey: ["/api/notifications"],
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
+
+  const unreadCount = notifications?.filter(n => !n.read).length || 0;
+
+  const markReadMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("POST", `/api/notifications/${id}/read`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+    },
+  });
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -57,6 +79,56 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative hover:bg-primary/5">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 border-2 border-background text-[10px] font-bold">
+                      {unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <h3 className="font-bold">Notifications</h3>
+                  {unreadCount > 0 && (
+                    <span className="text-xs text-muted-foreground">{unreadCount} unread</span>
+                  )}
+                </div>
+                <div className="max-h-[400px] overflow-y-auto">
+                  {!notifications || notifications.length === 0 ? (
+                    <div className="p-8 text-center text-muted-foreground italic">
+                      No notifications yet
+                    </div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        className={`p-4 border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer ${!notif.read ? "bg-primary/5" : ""}`}
+                        onClick={() => !notif.read && markReadMutation.mutate(notif.id)}
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <h4 className={`text-sm font-bold ${!notif.read ? "text-primary" : ""}`}>
+                            {notif.title}
+                          </h4>
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            {format(new Date(notif.createdAt), "MMM d")}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {notif.message}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

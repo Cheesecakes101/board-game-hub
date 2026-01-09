@@ -58,6 +58,19 @@ export default function Admin() {
     enabled: isAdmin,
   });
 
+  const deleteEventMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/events/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      toast({ title: "Event deleted!" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to delete event", description: error.message, variant: "destructive" });
+    },
+  });
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -880,17 +893,32 @@ function EventsTab({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedEvent(event);
-                        setIsManageDialogOpen(true);
-                      }}
-                      data-testid={`button-manage-event-${event.id}`}
-                    >
-                      <Eye className="h-4 w-4 mr-1" /> Manage
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedEvent(event);
+                          setIsManageDialogOpen(true);
+                        }}
+                        data-testid={`button-manage-event-${event.id}`}
+                      >
+                        <Eye className="h-4 w-4 mr-1" /> Manage
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to delete this event? This will also delete all registrations.")) {
+                            deleteEventMutation.mutate(event.id);
+                          }
+                        }}
+                        data-testid={`button-delete-event-${event.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -1013,120 +1041,119 @@ function UsersTab({ users, isLoading }: { users: User[]; isLoading: boolean }) {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Dialog open={isViewDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
-                    setIsViewDialogOpen(open);
-                    if (!open) setSelectedUser(null);
-                  }}>
-                    <DialogTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setIsViewDialogOpen(true);
-                        }}
-                        data-testid={`button-view-user-${user.id}`}
-                      >
-                        <Eye className="h-4 w-4 mr-1" /> View
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
-                      <div className="p-6 bg-white">
-                        <DialogHeader className="mb-6">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <DialogTitle className="text-2xl font-black text-[#1e293b]">User Details</DialogTitle>
-                              <p className="text-sm text-muted-foreground mt-1 font-medium">View user information and rental history</p>
-                            </div>
-                          </div>
-                        </DialogHeader>
-
-                        {detailsLoading ? (
-                          <div className="space-y-4 py-4">
-                            <Skeleton className="h-20 w-full rounded-2xl" />
-                            <Skeleton className="h-40 w-full rounded-2xl" />
-                          </div>
-                        ) : userDetails ? (
-                          <div className="space-y-8">
-                            <div className="flex items-center gap-6">
-                              <div className="relative">
-                                <div className="w-20 h-20 rounded-full bg-[#bbf7d0] flex items-center justify-center border-4 border-white shadow-sm overflow-hidden">
-                                  <img 
-                                    src={`https://api.dicebear.com/7.x/funmoji/svg?seed=${userDetails.email}&backgroundColor=b6e3f4,c0aede,d1d4f9`} 
-                                    alt={userDetails.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              </div>
-                              <div className="space-y-1">
-                                <h3 className="text-2xl font-black text-[#1e293b] leading-tight">{userDetails.name}</h3>
-                                <p className="text-[#64748b] font-bold text-lg">Room {userDetails.roomNo}</p>
-                                <Badge className="bg-[#dcfce7] text-[#166534] hover:bg-[#dcfce7] border-none shadow-none font-bold py-1 px-3 rounded-full flex items-center gap-1 w-fit">
-                                  <Check className="w-3 h-3" /> Verified
-                                </Badge>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-[80px_1fr] gap-y-4 text-lg">
-                              <span className="text-[#94a3b8] font-bold">Email:</span>
-                              <span className="text-[#334155] font-bold truncate">{userDetails.email}</span>
-                              <span className="text-[#94a3b8] font-bold">Phone:</span>
-                              <span className="text-[#334155] font-bold">{userDetails.phone}</span>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h4 className="text-xl font-black text-[#1e293b]">Rental History ({userDetails.rentals?.length || 0})</h4>
-                              <div className="max-h-[320px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-                                {userDetails.rentals?.map((rental) => (
-                                  <div key={rental.id} className="flex items-center gap-4 p-4 bg-[#f8fafc] rounded-2xl group transition-all hover:bg-[#f1f5f9]">
-                                    <div className="w-14 h-14 rounded-xl bg-white border-2 border-[#e2e8f0] flex items-center justify-center overflow-hidden shrink-0">
-                                      {rental.game?.imageUrl ? (
-                                        <img src={rental.game.imageUrl} className="w-full h-full object-cover" />
-                                      ) : (
-                                        <Package className="w-6 h-6 text-[#94a3b8]" />
-                                      )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h5 className="font-black text-[#1e293b] truncate text-lg leading-tight">{rental.game?.name}</h5>
-                                      <p className="text-sm font-bold text-[#64748b]">
-                                        {format(new Date(rental.startDate), "MMM d")} - {format(new Date(rental.endDate), "MMM d, yyyy")}
-                                      </p>
-                                    </div>
-                                    <Badge className={`rounded-full px-4 py-1.5 font-bold border-none shadow-none text-sm
-                                      ${rental.status === "pending" ? "bg-[#fef3c7] text-[#92400e]" : 
-                                        rental.status === "active" ? "bg-[#f3e8ff] text-[#6b21a8]" : 
-                                        "bg-[#f1f5f9] text-[#475569]"}`}>
-                                      {rental.status === "pending" ? "pending payment" : rental.status}
-                                    </Badge>
-                                  </div>
-                                ))}
-                                {(!userDetails.rentals || userDetails.rentals.length === 0) && (
-                                  <p className="text-center py-8 text-[#94a3b8] font-bold">No rental history</p>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="pt-4">
-                              <Button 
-                                onClick={() => {
-                                  setIsViewDialogOpen(false);
-                                  setSelectedUser(null);
-                                }}
-                                className="w-full h-14 rounded-2xl bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#475569] font-black text-lg border-none"
-                              >
-                                Close
-                              </Button>
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setIsViewDialogOpen(true);
+                    }}
+                    data-testid={`button-view-user-${user.id}`}
+                  >
+                    <Eye className="h-4 w-4 mr-1" /> View
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+
+        <Dialog open={isViewDialogOpen} onOpenChange={(open) => {
+          setIsViewDialogOpen(open);
+          if (!open) setSelectedUser(null);
+        }}>
+          <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
+            <div className="p-6 bg-white">
+              <DialogHeader className="mb-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <DialogTitle className="text-2xl font-black text-[#1e293b]">User Details</DialogTitle>
+                    <p className="text-sm text-muted-foreground mt-1 font-medium">View user information and rental history</p>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              {detailsLoading ? (
+                <div className="space-y-4 py-4">
+                  <Skeleton className="h-20 w-full rounded-2xl" />
+                  <Skeleton className="h-40 w-full rounded-2xl" />
+                </div>
+              ) : userDetails ? (
+                <div className="space-y-8">
+                  <div className="flex items-center gap-6">
+                    <div className="relative">
+                      <div className="w-20 h-20 rounded-full bg-[#bbf7d0] flex items-center justify-center border-4 border-white shadow-sm overflow-hidden">
+                        <img 
+                          src={`https://api.dicebear.com/7.x/funmoji/svg?seed=${userDetails.email}&backgroundColor=b6e3f4,c0aede,d1d4f9`} 
+                          alt={userDetails.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-black text-[#1e293b] leading-tight">{userDetails.name}</h3>
+                      <p className="text-[#64748b] font-bold text-lg">Room {userDetails.roomNo}</p>
+                      <Badge className="bg-[#dcfce7] text-[#166534] hover:bg-[#dcfce7] border-none shadow-none font-bold py-1 px-3 rounded-full flex items-center gap-1 w-fit">
+                        <Check className="w-3 h-3" /> Verified
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-[80px_1fr] gap-y-4 text-lg">
+                    <span className="text-[#94a3b8] font-bold">Email:</span>
+                    <span className="text-[#334155] font-bold truncate">{userDetails.email}</span>
+                    <span className="text-[#94a3b8] font-bold">Phone:</span>
+                    <span className="text-[#334155] font-bold">{userDetails.phone}</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-xl font-black text-[#1e293b]">Rental History ({userDetails.rentals?.length || 0})</h4>
+                    <div className="max-h-[320px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                      {userDetails.rentals?.map((rental: any) => (
+                        <div key={rental.id} className="flex items-center gap-4 p-4 bg-[#f8fafc] rounded-2xl group transition-all hover:bg-[#f1f5f9]">
+                          <div className="w-14 h-14 rounded-xl bg-white border-2 border-[#e2e8f0] flex items-center justify-center overflow-hidden shrink-0">
+                            {rental.game?.imageUrl ? (
+                              <img src={rental.game.imageUrl} className="w-full h-full object-cover" />
+                            ) : (
+                              <Package className="w-6 h-6 text-[#94a3b8]" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-black text-[#1e293b] truncate text-lg leading-tight">{rental.game?.name}</h5>
+                            <p className="text-sm font-bold text-[#64748b]">
+                              {format(new Date(rental.startDate), "MMM d")} - {format(new Date(rental.endDate), "MMM d, yyyy")}
+                            </p>
+                          </div>
+                          <Badge className={`rounded-full px-4 py-1.5 font-bold border-none shadow-none text-sm
+                            ${rental.status === "pending" ? "bg-[#fef3c7] text-[#92400e]" : 
+                              rental.status === "active" ? "bg-[#f3e8ff] text-[#6b21a8]" : 
+                              "bg-[#f1f5f9] text-[#475569]"}`}>
+                            {rental.status === "pending" ? "pending payment" : rental.status}
+                          </Badge>
+                        </div>
+                      ))}
+                      {(!userDetails.rentals || userDetails.rentals.length === 0) && (
+                        <p className="text-center py-8 text-[#94a3b8] font-bold">No rental history</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button 
+                      onClick={() => {
+                        setIsViewDialogOpen(false);
+                        setSelectedUser(null);
+                      }}
+                      className="w-full h-14 rounded-2xl bg-[#f1f5f9] hover:bg-[#e2e8f0] text-[#475569] font-black text-lg border-none"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
