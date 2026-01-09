@@ -80,6 +80,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteGame(id: number): Promise<void> {
+    await db.delete(rentals).where(eq(rentals.gameId, id));
     await db.delete(games).where(eq(games.id, id));
   }
 
