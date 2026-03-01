@@ -6,8 +6,15 @@ import { registerRoutes } from "./routes";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let localDirname = "";
+if (!process.env.VERCEL) {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    localDirname = path.dirname(__filename);
+  } catch (e) {
+    console.error("Failed to determine __dirname", e);
+  }
+}
 
 const app = express();
 const PostgresqlStore = pgSession(session);
@@ -35,9 +42,9 @@ registerRoutes(app);
 // On Vercel, this static serving is normally ignored. 
 // But during local dev "production" (e.g. build), it is useful.
 if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
-  app.use(express.static(path.join(__dirname, "../dist")));
+  app.use(express.static(path.join(localDirname, "../dist")));
   app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../dist/index.html"));
+    res.sendFile(path.join(localDirname, "../dist/index.html"));
   });
 }
 

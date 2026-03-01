@@ -50,11 +50,13 @@ export function registerRoutes(app: Express) {
         secretAnswer: hashedAnswer,
         role: "user",
       });
-      
-      // Send welcome email asynchronously
-      sendWelcomeEmail(user.email, user.name).catch(err => {
+
+      // Send welcome email (awaited for serverless environments)
+      try {
+        await sendWelcomeEmail(user.email, user.name);
+      } catch (err) {
         console.error("Welcome email background error:", err);
-      });
+      }
 
       req.session.userId = user.id;
       res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
@@ -352,18 +354,18 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/people-played-with", requireAuth, async (req, res) => {
     const people = await storage.getPeoplePlayedWith(req.session.userId!);
-    res.json(people.map(p => ({ 
-      id: p.user.id, 
-      name: p.user.name, 
+    res.json(people.map(p => ({
+      id: p.user.id,
+      name: p.user.name,
       email: p.user.email,
-      eventsCount: p.eventsCount 
+      eventsCount: p.eventsCount
     })));
   });
 
   // Notifications
   app.get("/api/notifications", requireAuth, async (req, res) => {
     const userId = req.session.userId!;
-    
+
     // Opportunistic reminders logic
     const rentals = await storage.getRentalsByUser(userId);
     const now = new Date();
@@ -373,7 +375,7 @@ export function registerRoutes(app: Express) {
     for (const rental of rentals) {
       if (rental.status === "active" || rental.status === "approved") {
         const endDate = new Date(rental.endDate);
-        
+
         // Rental Overdue
         if (endDate < now) {
           const existing = await storage.getNotificationByRelatedId(userId, rental.id, 'rental_overdue');
@@ -387,7 +389,7 @@ export function registerRoutes(app: Express) {
               read: false
             });
           }
-        } 
+        }
         // Rental Due Tomorrow
         else if (endDate <= tomorrow) {
           const existing = await storage.getNotificationByRelatedId(userId, rental.id, 'rental_reminder');
@@ -443,7 +445,7 @@ export function registerRoutes(app: Express) {
       const rentalId = parseInt(req.params.id);
       const oldRental = await storage.getRental(rentalId);
       const rental = await storage.updateRental(rentalId, req.body);
-      
+
       if (!rental) {
         return res.status(404).json({ message: "Rental not found" });
       }
