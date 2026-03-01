@@ -1,7 +1,7 @@
 import express from "express";
 import session from "express-session";
-import connectSqlite3 from "connect-sqlite3";
-import { db } from "./db";
+import pgSession from "connect-pg-simple";
+import { db, pool } from "./db";
 import { registerRoutes } from "./routes";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -10,14 +10,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const SQLiteStore = connectSqlite3(session);
+const PostgresqlStore = pgSession(session);
 
 app.use(express.json());
 app.use(
   session({
-    store: new SQLiteStore({
-      db: process.env.DATABASE_URL || "sqlite.db",
-      table: "session",
+    store: new PostgresqlStore({
+      pool: pool,
+      createTableIfMissing: true,
     }) as any,
     secret: process.env.SESSION_SECRET || "development-secret-key-123456789",
     resave: false,
@@ -32,7 +32,9 @@ app.use(
 
 registerRoutes(app);
 
-if (process.env.NODE_ENV === "production") {
+// On Vercel, this static serving is normally ignored. 
+// But during local dev "production" (e.g. build), it is useful.
+if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
   app.use(express.static(path.join(__dirname, "../dist")));
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../dist/index.html"));
@@ -40,6 +42,11 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Do not start app.listen on Vercel
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
